@@ -16,8 +16,8 @@ protected:
     int _xsize, _ysize, _iter;
     double _nowFnStreamValue,  _nowVorticityValue, _prevFnStreamValue, _prevVorticityValue, _dx, _dy;
     FlagMatrix* _flagMatrix;
-    function < double(int x, int y) > _boundaryConditionFnStream;
-    function < double(int x, int y) > _boundaryConditionFnVorticity;
+    function < double(double x, double y) > _boundaryConditionFnStream;
+    function < double(double x, double y) > _boundaryConditionFnVorticity;
 
 
     Relaxation() {}
@@ -44,7 +44,7 @@ protected:
     }
 
 public:
-    Relaxation(int xsize, int ysize, double dx, double dy,  FlagMatrix* flagMatrix,  function <double( int x, int y)> boundaryConditionFnStream,  function <double( int x, int y)> boundaryConditionFnVorticity):
+    Relaxation(int xsize, int ysize, double dx, double dy,  FlagMatrix* flagMatrix,  function <double( double x, double y)> boundaryConditionFnStream,  function <double( double x, double y)> boundaryConditionFnVorticity):
             _xsize(xsize), _ysize(ysize), _flagMatrix(flagMatrix), _dx(dx), _dy(dy), _boundaryConditionFnStream(boundaryConditionFnStream), _boundaryConditionFnVorticity(boundaryConditionFnVorticity) {
         _streamFunctionMatrix = imnd::matrix(_xsize, _ysize);
         _vorticityMatrix = imnd::matrix(_xsize, _ysize);
@@ -68,8 +68,7 @@ public:
 //        if(_iter > 100) {
 //            _integralGraph.push_back({_iter, _nowFnStreamValue});
 //        }
-        _prevFnStreamValue = _nowFnStreamValue;
-        _prevVorticityValue = _nowVorticityValue;
+
         _iter++;
     }
 
@@ -81,11 +80,15 @@ public:
         if(fabs(_nowFnStreamValue - _prevFnStreamValue)  < tol &&  fabs(_nowVorticityValue - _prevVorticityValue) < tol && _iter > 100) {
             return false;
         }
-            return true;
+         _prevFnStreamValue = _nowFnStreamValue;
+         _prevVorticityValue = _nowVorticityValue;
+         return true;
+
     }
 
-    void SaveFlagsMatrixToPNGFile(const char *fileName) {
+    void SaveFlagsMatrixToPNGFile(const char *fileName, const char *fileName2) {
         imnd::plot_2d_system(fileName, _streamFunctionMatrix, _xsize, _ysize,  _dx, _dy);
+        imnd::plot_2d_system(fileName2, _vorticityMatrix, _xsize, _ysize,  _dx, _dy);
     }
 
     virtual void SaveResults() = 0;
